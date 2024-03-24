@@ -15,19 +15,25 @@ function DashSidebar() {
       setTab(tabFromUrl);
     }
   }, [location.search]);
+
   return (
     <Sidebar className="w-full md:w-56">
       <Sidebar.Items>
         <Sidebar.ItemGroup>
-          <Link to="/dashboard?tab=profile">
+          <Link
+            to="/dashboard?tab=profile"
+            className={tab === "profile" ? "active" : ""}
+          >
             <Sidebar.Item
-              active={tab === "profile"}
               icon={HiUser}
               label={"User"}
               labelColor="dark"
+              as="div"
             >
               Profile
             </Sidebar.Item>
+          </Link>
+          <Link to="/sign-out" className={tab === "sign-out" ? "active" : ""}>
             <Sidebar.Item icon={HiArrowSmRight} className="cursor-pointer">
               Sign Out
             </Sidebar.Item>
