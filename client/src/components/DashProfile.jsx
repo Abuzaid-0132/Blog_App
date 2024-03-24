@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { TextInput, Button, Alert } from "flowbite-react";
+import { TextInput, Button, Alert, Modal } from "flowbite-react";
 import {
   getDownloadURL,
   getStorage,
@@ -14,10 +14,14 @@ import {
   updateStart,
   updateSuccess,
   updateFailure,
+  deleteUserStart,
+  deleteUserSuccess,
+  deleteUserFailure,
 } from "../redux/user/userSlice";
+import { HiOutlineExclamationCircle } from "react-icons/hi";
 
 function DashProfile() {
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser, error } = useSelector((state) => state.user);
   const [imageFile, setImageFile] = useState(null);
   const [imageFileUrl, setImageFileUrl] = useState(null);
   const [imageFileUploadProgress, setImageFileUploadProgress] = useState(null);
@@ -25,6 +29,7 @@ function DashProfile() {
   const [imageFileUploading, setImageFileUploading] = useState(false);
   const [updateUserSuccess, setUpdateUserSuccess] = useState(null);
   const [updateUserError, setUpdateUserError] = useState(null);
+  const [showModel, setShowModel] = useState(false);
   const [formData, setFormData] = useState({});
 
   const filePickerRef = useRef();
@@ -81,6 +86,47 @@ function DashProfile() {
     setFormData({ ...formData, [event.target.id]: event.target.value });
   };
 
+  // const handleSubmit = async (event) => {
+
+  //   event.preventDefault();
+
+  //   setUpdateUserError(null);
+  //   setUpdateUserSuccess(null);
+
+  //   if (Object.keys(formData).length === 0) {
+  //     setUpdateUserError("No Changes made!");
+  //     return;
+  //   }
+
+  //   if (imageFileUploading) {
+  //     setUpdateUserError("Please wait for image to upload!");
+  //     return;
+  //   }
+
+  //   try {
+  //     dispatch(updateStart());
+  //     const res = await fetch(`/api/user/update/${currentUser._id}`, {
+  //       method: "PUT",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(formData),
+  //     });
+  //     console.log("Response is:->", res);
+  //     const data = await res.json();
+  //     if (!res.ok) {
+  //       dispatch(updateFailure(data.message));
+  //       setUpdateUserError("response in not o.k", data.message);
+  //     } else {
+  //       dispatch(updateSuccess(data));
+  //       setUpdateUserSuccess("User's profile updated successfully");
+  //     }
+  //   } catch (error) {
+  //     dispatch(updateFailure(error.message));
+  //     setUpdateUserError("Error in catch", error.message);
+  //   }
+  // };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -106,18 +152,38 @@ function DashProfile() {
         },
         body: JSON.stringify(formData),
       });
-      console.log("Response is:->", res);
+      console.log("Response status:", res.status);
       const data = await res.json();
       if (!res.ok) {
         dispatch(updateFailure(data.message));
-        setUpdateUserError("response in not o.k", data.message);
+        setUpdateUserError("response is not ok", data.message);
       } else {
         dispatch(updateSuccess(data));
         setUpdateUserSuccess("User's profile updated successfully");
       }
     } catch (error) {
+      console.error("Error:", error);
       dispatch(updateFailure(error.message));
       setUpdateUserError("Error in catch", error.message);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    setShowModel(false);
+
+    try {
+      dispatch(deleteUserStart());
+      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        dispatch(deleteUserFailure(data.message));
+      } else {
+        dispatch(deleteUserSuccess(data));
+      }
+    } catch (error) {
+      dispatch(deleteUserFailure(error.message));
     }
   };
 
@@ -197,7 +263,9 @@ function DashProfile() {
         </Button>
       </form>
       <div className="text-red-500 flex justify-between mt-5">
-        <span className="cursor-pointer">Delete Account</span>
+        <span onClick={() => setShowModel(true)} className="cursor-pointer">
+          Delete Account
+        </span>
         <span className="cursor-pointer">Sign Out</span>
       </div>
       {updateUserSuccess && (
@@ -210,6 +278,35 @@ function DashProfile() {
           {updateUserError}
         </Alert>
       )}
+      {error && (
+        <Alert color="failure" className="mt-5 text-3xl">
+          {error}
+        </Alert>
+      )}
+      <Modal
+        show={showModel}
+        onClose={() => setShowModel(false)}
+        popup
+        size="md"
+      >
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <HiOutlineExclamationCircle className="h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto " />
+            <h3 className="mb-5 text-lg text-gray-500 dark:text-gray-400">
+              Are you sure you want to delete your account.
+            </h3>
+            <div className="flex justify-center gap-5">
+              <Button color="failure" onClick={handleDeleteUser}>
+                Yes, I'm sure
+              </Button>
+              <Button color="gray" onClick={() => setShowModel(false)}>
+                No, Cancel
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }
