@@ -29,8 +29,8 @@ function DashProfile() {
   const [imageFileUploading, setImageFileUploading] = useState(false);
   const [updateUserSuccess, setUpdateUserSuccess] = useState(null);
   const [updateUserError, setUpdateUserError] = useState(null);
+  const [formData, setFormData] = useState();
   const [showModel, setShowModel] = useState(false);
-  const [formData, setFormData] = useState({});
 
   const filePickerRef = useRef();
   const dispatch = useDispatch();
